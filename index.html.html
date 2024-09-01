@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: url('https://watermark.lovepik.com/photo/40145/2852.jpg_wh1200.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #ffffff;
+        }
+
+        h2 {
+            font-size: 36px;
+            color: #00FFFF; /* Cyan color to match the neon theme */
+            margin-top: 30px;
+            text-align: center;
+            text-shadow: 2px 2px 5px rgba(0, 255, 255, 0.7); /* Neon glow effect */
+        }
+
+        form {
+            background: rgba(0, 0, 51, 0.85); /* Dark blue with some transparency */
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0px 0px 15px rgba(0, 255, 255, 0.5); /* Cyan shadow for neon effect */
+            margin-bottom: 30px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 20px;
+            color: #00FFFF; /* Cyan color */
+            text-shadow: 1px 1px 3px rgba(0, 255, 255, 0.6);
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: calc(100% - 24px);
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            box-shadow: inset 3px 3px 10px rgba(0, 0, 51, 0.8),
+                        inset -3px -3px 10px rgba(0, 255, 255, 0.5);
+            outline: none;
+            background-color: #0a0a2e; /* Dark background for input */
+            color: #ffffff; /* White text inside input */
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #00CED1; /* Darker cyan */
+            color: #000000; /* Black text */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+            box-shadow: 0px 0px 15px rgba(0, 255, 255, 0.7); /* Neon glow effect */
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #20B2AA; /* Slightly darker cyan on hover */
+            transform: translateY(-2px);
+        }
+
+        table {
+            width: 90%;
+            max-width: 800px;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+            background-color: rgba(10, 10, 46, 0.9); /* Dark background for table */
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0px 0px 20px rgba(0, 255, 255, 0.5);
+        }
+
+        th, td {
+            border: none;
+            padding: 15px;
+            text-align: left;
+            font-size: 18px;
+            color: #ffffff; /* White text */
+        }
+
+        th {
+            background-color: #008B8B; /* Teal background for table header */
+            color: #ffffff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(0, 206, 209, 0.2); /* Light cyan for alternate rows */
+        }
+
+        tr:hover {
+            background-color: rgba(0, 255, 255, 0.2); /* Highlight row on hover */
+            transition: background-color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Add Product</h2>
+
+    <form id="productForm">
+        <label for="productCode">Product Code:</label>
+        <input type="text" id="productCode" required>
+
+        <label for="price">Price:</label>
+        <input type="number" id="price" required>
+
+        <button type="button" onclick="addProduct()">Add Product</button>
+    </form>
+
+    <h2>Product List</h2>
+
+    <table id="productTable">
+        <thead>
+            <tr>
+                <th>Product Code</th>
+                <th>Price</th>
+                <th>Created At</th>
+            </tr>
+        </thead>
+        <tbody id="productTableBody"></tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchProducts();
+        });
+
+        function addProduct() {
+            var productCode = document.getElementById('productCode').value;
+            var price = document.getElementById('price').value;
+
+            var data = {
+                operation: 'addProduct',
+                productCode: productCode,
+                price: price
+            };
+
+            fetch('https://7qr10w08f8.execute-api.us-east-2.amazonaws.com/dev/getData', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(result => {
+                alert(JSON.parse(result.body));
+                document.getElementById('productCode').value = '';
+                document.getElementById('price').value = '';
+            })
+            .catch(error => {
+                console.error('Error adding product:', error);
+            });
+        }
+
+        function fetchProducts() {
+            var requestData = {
+               operation: 'listProduct'
+            };
+
+            fetch('https://7qr10w08f8.execute-api.us-east-2.amazonaws.com/dev/getData', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            })
+            .then(response => response.json())
+            .then(responseData => {
+                const products = JSON.parse(responseData.body);
+                products.forEach(product => {
+                    updateProductTable(product);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching products:', error);
+            });
+        }
+
+        function updateProductTable(product) {
+            var tableBody = document.getElementById('productTableBody');
+            var row = tableBody.insertRow();
+
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+            var cell3 = row.insertCell(2);
+
+            cell1.textContent = product.productCode;
+            cell2.textContent = product.price;
+            cell3.textContent = product.createdAt;
+        }
+    </script>
+
+</body>
+</html>
